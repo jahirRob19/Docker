@@ -18,8 +18,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: 🔧 Build Docker Test Image
-        run: |
-          docker build --target test -t my-app:test .
+        run: docker build --target test -t my-app:test .
 
       - name: 🧪 Run Unit Tests & Generate Coverage
         run: |
