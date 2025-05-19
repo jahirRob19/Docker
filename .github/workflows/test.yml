@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 name: 🧪 Run Unit Tests with Coverage
 
 on:
@@ -6,50 +5,28 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-=======
-name: Run Unit Tests
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
->>>>>>> 56fc7ca50928c5695b9926dc53084eda604f2457
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-<<<<<<< HEAD
-      - name: 📥 Clonar repositorio
-        uses: actions/checkout@v3
-
-      - name: 🟢 Usar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: 📦 Instalar dependencias
-        run: npm ci
-
-      - name: 🧪 Ejecutar pruebas con cobertura
-        run: npm run test
-
-      - name: 📤 Subir reporte de cobertura como artefacto
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage/
-=======
       - name: 📥 Checkout repository
         uses: actions/checkout@v3
 
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 🔧 Build and run tests (Docker)
+      - name: 🔧 Build Docker image for tests
         run: |
           docker build --target test -t my-app:test .
-          docker run --rm my-app:test
->>>>>>> 56fc7ca50928c5695b9926dc53084eda604f2457
+
+      - name: 🧪 Run tests inside Docker container
+        run: |
+          docker run --rm -v ${{ github.workspace }}/coverage:/app/coverage my-app:test
+
+      - name: 📤 Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
