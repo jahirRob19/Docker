@@ -1,10 +1,10 @@
-name: Run Unit Tests
+name: 🧪 Run Unit Tests (Docker)
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
@@ -17,7 +17,16 @@ jobs:
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 🔧 Build and run tests (Docker)
+      - name: 🔧 Build Docker image with test target
         run: |
           docker build --target test -t my-app:test .
-          docker run --rm my-app:test
+
+      - name: 🧪 Run tests inside Docker container
+        run: |
+          docker run --rm -v ${{ github.workspace }}/coverage:/app/coverage my-app:test
+
+      - name: 📤 Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
