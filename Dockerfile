@@ -1,24 +1,3 @@
-<<<<<<< HEAD
-#syntax=docker/dockerfile:1
-
-# builder installs dependencies and builds the node app
-FROM node:lts-alpine AS builder
-WORKDIR /src
-RUN --mount=src=package.json,target=package.json \
-    --mount=src=package-lock.json,target=package-lock.json \
-    --mount=type=cache,target=/root/.npm \
-    npm ci
-COPY . .
-RUN --mount=type=cache,target=/root/.npm \
-    npm run build
-
-# release creates the runtime image
-FROM node:lts-alpine AS release
-WORKDIR /app
-COPY --from=builder /src/build .
-EXPOSE 3000
-CMD ["node", "."]
-=======
 # syntax=docker/dockerfile:1
 
 # 🔧 Etapa 1: Builder - instala dependencias y construye la app
@@ -28,7 +7,36 @@ WORKDIR /src
 # Copiar archivos necesarios para instalar dependencias
 COPY package.json package-lock.json ./
 
-# 🧪 Etapa 2: Test - corre las pruebas unitarias
+# Cacheo de npm para acelerar builds
+RUN --mount=type=cache,target=/root/.npm npm ci
+
+# Copia el resto del código fuente
+COPY . .
+
+# Construcción de la app
+RUN --mount=type=cache,target=/root/.npm npm run build
+
+# 🧪 Etapa 2: Test - corre pruebas unitarias con cobertura
 FROM node:lts-alpine AS test
-WORKDIR /test
->>>>>>> 56fc7ca50928c5695b9926dc53084eda604f2457
+WORKDIR /app
+
+# Copiar dependencias y código
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+
+# Ejecuta pruebas (ideal con cobertura)
+RUN npm run test
+
+# 🚀 Etapa 3: Release - imagen liviana de ejecución
+FROM node:lts-alpine AS release
+WORKDIR /app
+
+# Copia solo los archivos construidos
+COPY --from=builder /src/build ./
+
+# Puerto que expone la app
+EXPOSE 3000
+
+# Comando de ejecución
+CMD ["node", "."]
