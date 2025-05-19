@@ -26,4 +26,8 @@ jobs:
         with:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
+<<<<<<< HEAD
           annotations: ${{ steps.meta.outputs.annotations }}
+=======
+          annotations: ${{ steps.meta.outputs.annotations }}
+>>>>>>> 56fc7ca50928c5695b9926dc53084eda604f2457
