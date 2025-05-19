@@ -17,7 +17,22 @@ jobs:
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 🔧 Build and run tests (Docker)
+      - name: 🔧 Build test image
+        run: docker build --target test -t my-app:test .
+
+      - name: 🧪 Run tests & show coverage
         run: |
-          docker build --target test -t my-app:test .
-          docker run --rm my-app:test
+          echo "🔍 Ejecutando pruebas unitarias con cobertura..."
+          docker run --rm \
+            -v ${{ github.workspace }}/coverage:/src/coverage \
+            my-app:test
+          echo "✅ Pruebas completadas. Métricas de cobertura:"
+          # Muestra el resumen de cobertura generado por Vitest
+          sed -n '1,10p' coverage/coverage-summary.json || true
+
+      - name: 📊 Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage/
