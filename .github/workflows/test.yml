@@ -1,38 +1,52 @@
 name: Run Unit Tests
-
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v3
-
+      
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: 🔧 Build Docker Test Image
-        run: docker build --target test -t my-app:test .
-
-      - name: 🧪 Run Unit Tests & Generate Coverage
+      
+      - name: 🔧 Build test image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: test
+          load: true
+          tags: my-app:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: 🧪 Run tests and capture metrics
         run: |
-          echo "🔍 Ejecutando pruebas unitarias (Unit Tests)"
-          echo "📊 Métrica: Cobertura de Código (Code Coverage)"
-          mkdir -p coverage
+          mkdir -p test-results
           docker run --rm \
-            -v "${{ github.workspace }}/coverage":/src/coverage \
-            my-app:test
-          echo "✅ Pruebas completadas. Cobertura disponible en ./coverage/"
-
-      - name: 📂 Upload Coverage Report
+            -v ${{ github.workspace }}/test-results:/app/test-results \
+            my-app:test \
+            sh -c "npm test -- --reporters=default --reporters=jest-junit && cat junit.xml > /app/test-results/test-report.xml"
+      
+      - name: 📊 Generar resumen de métricas
+        run: |
+          echo "::group::Resumen de Tests"
+          grep -m 1 -E "tests=\"[0-9]+\"" test-results/test-report.xml | sed -E 's/.*tests="([0-9]+)".*failures="([0-9]+)".*errors="([0-9]+)".*/Tests: \1, Fallos: \2, Errores: \3/'
+          echo "::endgroup::"
+      
+      - name: 📝 Publicar resultados de tests
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: coverage-report
-          path: coverage/
+          name: test-reports
+          path: test-results/
+          
+      - name: 📈 Publicar resultados de tests como pruebas
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: test-results/test-report.xml
