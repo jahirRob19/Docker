@@ -1,4 +1,4 @@
-name: 🧪 Unit Tests and Metrics
+name: Run Unit Tests
 
 on:
   push:
@@ -9,41 +9,15 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: 📥 Checkout code
+      - name: 📥 Checkout repository
         uses: actions/checkout@v3
 
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 🔧 Build Docker test image
+      - name: 🔧 Build and run tests (Docker)
         run: |
           docker build --target test -t my-app:test .
-
-      - name: 🧪 Run unit tests and capture metrics
-        run: |
-          # Creamos carpeta para los resultados
-          mkdir -p test-results
-
-          # Ejecutamos los tests dentro del contenedor
-          docker run --rm \
-            -v ${{ github.workspace }}/test-results:/app/test-results \
-            my-app:test \
-            sh -c "npm test \
-                     -- --coverage \
-                        --coverageReporters=cobertura \
-                        --coverageReporters=text-summary \
-                        --reporters=default \
-                        --reporters=jest-junit \
-                   && mv coverage/cobertura-coverage.xml /app/test-results/coverage.xml \
-                   && cat junit.xml > /app/test-results/junit.xml"
-
-      - name: 🔍 Debug test-results directory
-        run: ls -l test-results/
-
-      - name: 📝 Publish test reports and coverage
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-metrics
-          path: test-results/
+          docker run --rm my-app:test
