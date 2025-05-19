@@ -1,5 +1,5 @@
 name: 🧪 Run tests and capture metrics
-  run: |
+  run: 
     mkdir -p test-results
     docker run --rm \
       -v ${{ github.workspace }}/test-results:/app/test-results \
