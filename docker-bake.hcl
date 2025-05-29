@@ -5,5 +5,5 @@ group "default" {
 target "web" {
   context = "."
   dockerfile = "Dockerfile"
-  tags = ["${DOCKER_USERNAME}/my-image:latest"]
+  tags = ["jahirrob19/my-image:latest"]
 }
